@@ -12,13 +12,19 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - ./pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
 
   airflow-webserver:
     build:
       dockerfile: local.Dockerfile
     container_name: ${AIRFLOW_CONTAINER_NAME}
     depends_on:
-      - airflow-postgres
+      airflow-postgres:
+        condition: service_healthy
     ports:
       - "${AIRFLOW_UI_PORT}:8000"
     environment:
